@@ -71,9 +71,9 @@ export ACI=aci$NAME
 export IMG=img$NAME
 
 # (OPTIONAL) if you already have the keys:
-export AOAIKEY=b249ff7055e349c19b9665ff4df191ec   # leave empty to auto‑retrieve later
-export LFPUBLIC=pk-lf-172affbb-515f-425c-81b4-ad99d3586f71
-export LFSECRET=sk-lf-8f5062a3-4c73-46b8-81a7-a784c561916e
+export AOAIKEY=   
+export LFPUBLIC=
+export LFSECRET=
 export AZURE_DEPLOYMENT=telcogpt2
 export LANGFUSE_HOST=https://cloud.langfuse.com
 export AZURE_OPENAI_ENDPOINT=https://swedencentral.api.cognitive.microsoft.com/
@@ -133,9 +133,9 @@ Copy the three fields—we’ll map them to environment variables.
 ```bash
 #export following env variables
 export VAULT_NAME=$VAULT
-export AZURE_CLIENT_SECRET=Y.k8Q~Dz5nanYAZg7jqzKbOj_VU9T2KEqfP4Bdrh
-export AZURE_CLIENT_ID=cc8f42c4-5f99-417b-b833-3bc39649cf4a
-export AZURE_TENANT_ID=0d2a6053-e113-42e7-9169-f5cbed7a941f
+export AZURE_CLIENT_SECRET=
+export AZURE_CLIENT_ID=
+export AZURE_TENANT_ID=
 export AZURE_DEPLOYMENT=telcogpt2
 export LANGFUSE_HOST=https://cloud.langfuse.com
 export AZURE_OPENAI_ENDPOINT=https://swedencentral.api.cognitive.microsoft.com/
