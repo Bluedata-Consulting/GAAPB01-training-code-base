@@ -50,3 +50,17 @@ export async function checkHealth() {
     return false;
   }
 }
+
+export async function checkConnection() {
+  try {
+    // First try health endpoint
+    const isHealthy = await checkHealth();
+    if (isHealthy) return true;
+    
+    // If health check fails, try creating a session
+    await createSession();
+    return true;
+  } catch (error) {
+    console.error("Connection check failed:", error);
+    return false;
+  }}
