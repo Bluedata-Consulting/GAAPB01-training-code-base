@@ -62,8 +62,8 @@ az login
 ```bash
 
 # personalise
-export NAME=anshu
-export RG=Tredence-Batch2
+export NAME=anshu2
+export RG=Tredence-Batch1
 export VAULT=vault$NAME
 export SP=sp$NAME
 export ACR=codeacr$NAME
@@ -71,19 +71,16 @@ export ACI=aci$NAME
 export IMG=img$NAME
 
 # (OPTIONAL) if you already have the keys:
-export AOAIKEY=   
-export LFPUBLIC=
-export LFSECRET=
+export AOAIKEY=xxxxxxxxxxxxxxxx   
+export LFPUBLIC=pk-lfxxxxxxxxxxxxxxxx
+export LFSECRET=sk-lf-xxxxxxxxxxxxxxxxxxxxxx
 export AZURE_DEPLOYMENT=telcogpt2
 export LANGFUSE_HOST=https://cloud.langfuse.com
 export AZURE_OPENAI_ENDPOINT=https://swedencentral.api.cognitive.microsoft.com/
-export FD=codeopt-fd-$NAME             # must be globally unique
 export REGION=centralindia             # adjust if you deployed ACIs elsewhere
 export FD_FQDN=${FD}.azurefd.net       # default hostname Front Door will give you
 export SESSION_SECRET=$(openssl rand -base64 32)
 export RUNNING_IN_AZURE=False
-export APPINSIGHTNAME=azureai$NAME
-REGION=centralindia
 
 ```
 
@@ -133,9 +130,9 @@ Copy the three fields—we’ll map them to environment variables.
 ```bash
 #export following env variables
 export VAULT_NAME=$VAULT
-export AZURE_CLIENT_SECRET=
-export AZURE_CLIENT_ID=
-export AZURE_TENANT_ID=
+export AZURE_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxx
+export AZURE_CLIENT_ID=5xxxxxxxxx979c
+export AZURE_TENANT_ID=xxxxxxxxxxxxxxxxxxxxxf
 export AZURE_DEPLOYMENT=telcogpt2
 export LANGFUSE_HOST=https://cloud.langfuse.com
 export AZURE_OPENAI_ENDPOINT=https://swedencentral.api.cognitive.microsoft.com/
@@ -149,8 +146,8 @@ export VITE_API_URL=http://localhost:8000
 ```bash
 # Launch the backend service
 cd code-optimizer/backend
-export $(grep -v '^#' .env | xargs)
-  uvicorn main:app --reload --port 8000
+#export $(grep -v '^#' .env | xargs)
+uvicorn main:app --reload --port 8000
 
 ```
 
