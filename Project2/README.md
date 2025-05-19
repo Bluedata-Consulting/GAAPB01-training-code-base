@@ -133,9 +133,6 @@ export VAULT_NAME=$VAULT
 export AZURE_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxx
 export AZURE_CLIENT_ID=5xxxxxxxxx979c
 export AZURE_TENANT_ID=xxxxxxxxxxxxxxxxxxxxxf
-export AZURE_DEPLOYMENT=telcogpt2
-export LANGFUSE_HOST=https://cloud.langfuse.com
-export AZURE_OPENAI_ENDPOINT=https://swedencentral.api.cognitive.microsoft.com/
 # Cookie signing secret
 #export SESSION_SECRET=$(openssl rand -hex 16)
 # Local React app points to the backend
@@ -146,7 +143,6 @@ export VITE_API_URL=http://localhost:8000
 ```bash
 # Launch the backend service
 cd code-optimizer/backend
-#export $(grep -v '^#' .env | xargs)
 uvicorn main:app --reload --port 8000
 
 ```
