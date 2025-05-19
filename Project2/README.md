@@ -62,8 +62,8 @@ az login
 ```bash
 
 # personalise
-export NAME=anshu2
-export RG=Tredence-Batch1
+export NAME=anshu
+export RG=Tredence-Batch2
 export VAULT=vault$NAME
 export SP=sp$NAME
 export ACR=codeacr$NAME
@@ -71,16 +71,16 @@ export ACI=aci$NAME
 export IMG=img$NAME
 
 # (OPTIONAL) if you already have the keys:
-export AOAIKEY=xxxxxxxxxxxxxxxx   
-export LFPUBLIC=pk-lfxxxxxxxxxxxxxxxx
-export LFSECRET=sk-lf-xxxxxxxxxxxxxxxxxxxxxx
+export AOAIKEY=xxxxxxxxxxxxxxxx
+export LFPUBLIC=pxxxxxxxxxxx
+export LFSECRET=sxxxxxxxxxxxxxxxxxxxx
 export AZURE_DEPLOYMENT=telcogpt2
 export LANGFUSE_HOST=https://cloud.langfuse.com
 export AZURE_OPENAI_ENDPOINT=https://swedencentral.api.cognitive.microsoft.com/
-export REGION=centralindia             # adjust if you deployed ACIs elsewhere
-export FD_FQDN=${FD}.azurefd.net       # default hostname Front Door will give you
+export REGION=centralindia
 export SESSION_SECRET=$(openssl rand -base64 32)
 export RUNNING_IN_AZURE=False
+export COOKIE_SECURE=False
 
 ```
 
@@ -130,9 +130,9 @@ Copy the three fields—we’ll map them to environment variables.
 ```bash
 #export following env variables
 export VAULT_NAME=$VAULT
-export AZURE_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxx
-export AZURE_CLIENT_ID=5xxxxxxxxx979c
-export AZURE_TENANT_ID=xxxxxxxxxxxxxxxxxxxxxf
+export AZURE_CLIENT_SECRET=xxxxxxxxxxxxxxx
+export AZURE_CLIENT_ID=xxxxxxxxxxxxxx
+export AZURE_TENANT_ID=xxxxxxxxxxxxxx
 # Cookie signing secret
 #export SESSION_SECRET=$(openssl rand -hex 16)
 # Local React app points to the backend
@@ -141,8 +141,8 @@ export VITE_API_URL=http://localhost:8000
 
 #### Backend: FastAPI ServerLaunch the backend service
 ```bash
-# Launch the backend service
-cd code-optimizer/backend
+# Launch the backend service locally
+cd Project2/code-optimizer/backend
 uvicorn main:app --reload --port 8000
 
 ```
@@ -160,12 +160,13 @@ Docs:
 Open **another terminal** (leave the backend running):
 
 ```bash
-cd code-optimizer/frontend
+cd Project2/code-optimizer/frontend
 sudo apt install nodejs npm  # enter the user VM password (Cloud.....)
+# delete the folder frontend/node_modules
 npm install          # first time only
 npm run dev          # Vite dev server → http://localhost:5173
 ```
-
+demo repo for test : https://github.com/anshupandey/mlops-ey25
 Vite prints something like:
 
 ```
@@ -238,7 +239,9 @@ sudo docker build -f frontend.Dockerfile \
   -t $IMG-frontend:latest .
 
 
-sudo docker run -d -p 8080:80 $IMG-frontend:latest
+sudo docker run -d -p 8080:80 --add-host=host.docker.internal:host-gateway \
+-e BACKEND_URL=http://host.docker.internal:8000 \
+ $IMG-frontend:latest
 
 
 sudo docker tag $IMG-frontend:latest $ACR.azurecr.io/$IMG-frontend:latest
@@ -250,99 +253,44 @@ sudo docker push $ACR.azurecr.io/$IMG-frontend:latest
 
 ```bash
 
-ACR_USERNAME=$(az acr credential show --name myacrname --query "username" -o tsv)
-ACR_PASSWORD=$(az acr credential show --name myacrname --query "passwords[0].value" -o tsv)
+ACR_USERNAME=$(az acr credential show --name $ACR$ --query "username" -o tsv)
+ACR_PASSWORD=$(az acr credential show --name $ACR$ --query "passwords[0].value" -o tsv)
+export SESSION_SECRET=$(openssl rand -base64 32)
+export RUNNING_IN_AZURE=True
+export COOKIE_SECURE=True
+export TAG=latest
+export DNS_LABEL=codeopt-app
+export LOCATION=centralindia
+export ALLOWED_ORIGINS=http://$DNS_LABEL.$LOCATION.azurecontainer.io,http://localhost
 
-# Create a container group with both containers
-az container create -g $RG -n ${ACI}-group \
-  --image $ACR.azurecr.io/$IMG-backend:latest \
-  --image $ACR.azurecr.io/$IMG-frontend:latest \
-  --registry-login-server $ACR.azurecr.io \
-  --registry-username $(az acr credential show -n $ACR --query username -o tsv) \
-  --registry-password $(az acr credential show -n $ACR --query passwords[0].value -o tsv) \
-  --dns-name-label codeopt-app \
-  --cpu 2 --memory 4 --os-type Linux --ip-address public \
-  --ports 80 8000 \
-  --environment-variables \
-      VAULT_NAME=$VAULT_NAME \
-      AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET \
-      AZURE_CLIENT_ID=$AZURE_CLIENT_ID \
-      AZURE_TENANT_ID=$AZURE_TENANT_ID \
-      AZURE_DEPLOYMENT=$AZURE_DEPLOYMENT \
-      LANGFUSE_HOST=$LANGFUSE_HOST \
-      AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT \
-      SESSION_SECRET=$(openssl rand -hex 16) \
-      BACKEND_URL=http://localhost:8000
+# Generate aci config file: contianer-group.yaml
+# navigate to the project2 directory
+python generate-aci-config.py
 
-
-# BACKEND ACI
-az container create -g $RG -n ${ACI}-backend \
-  --image $ACR.azurecr.io/$IMG-backend:latest \
-  --registry-login-server $ACR.azurecr.io \
-  --registry-username $(az acr credential show -n $ACR --query username -o tsv) \
-  --registry-password $(az acr credential show -n $ACR --query passwords[0].value -o tsv) \
-  --cpu 1 --memory 2 --os-type Linux --ip-address public \
-  --dns-name-label $BACKEND_LABEL \
-  --ports 8000 \
-  --environment-variables \
-      VAULT_NAME=$VAULT_NAME \
-      ALLOWED_ORIGINS=http://$FRONT_FQDN \
-      AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET \
-      AZURE_CLIENT_ID=$AZURE_CLIENT_ID \
-      AZURE_TENANT_ID=$AZURE_TENANT_ID \
-      AZURE_DEPLOYMENT=$AZURE_DEPLOYMENT \
-      LANGFUSE_HOST=$LANGFUSE_HOST \
-      AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT
-      SESSION_SECRET=$(openssl rand -hex 16)
-
+az container create -g $RG --file container-group.yaml
 
 # check list of containers
 az container list -g $RG -o table
 
 
 # check FQDN and ensure it is same as BACKEND_FQDN
-az container show -g $RG -n ${ACI}-backend \
+az container show -g $RG -n ${ACI}-group \
   --query "ipAddress.{fqdn:fqdn,ip:ip,ports:ports}" -o table
 
-
-# rebuild docker image with new env variable
-sudo docker build -f frontend.Dockerfile \
--t $ACR.azurecr.io/$IMG-frontend:latest \
---build-arg API_URL=http://$BACKEND_FQDN:8000 .
-
-
-sudo docker push $ACR.azurecr.io/$IMG-frontend:latest
-# FRONTEND ACI
-az container create -g $RG -n ${ACI}-frontend \
-  --image $ACR.azurecr.io/$IMG-frontend:latest \
-  --registry-login-server $ACR.azurecr.io \
-  --registry-username $(az acr credential show -n $ACR --query username -o tsv) \
-  --registry-password $(az acr credential show -n $ACR --query passwords[0].value -o tsv) \
-  --cpu 1 --memory 2 --os-type Linux --ip-address public \
-  --dns-name-label $FRONT_LABEL \
-  --ports 80 
 
 ```
-# check list of containers
-az container list -g $RG -o table
-
-
-# check FQDN and ensure it is same as FRONTEND_FQDN
-az container show -g $RG -n ${ACI}-frontend \
-  --query "ipAddress.{fqdn:fqdn,ip:ip,ports:ports}" -o table
-
-
 # ------------------------------------------------------------------
 # 7.  Delete and Clean the deployments 
 # ------------------------------------------------------------------
 
 # delete the container instance
-az container delete -g $RG -n ${ACI}-frontend --yes
-az container delete -g $RG -n ${ACI}-backend --yes
+az container delete -g $RG -n ${ACI}-group --yes
 
 # delete the container registry
 az acr delete -g $RG -n $ACR --yes
 
+# delete the key vault
+az keyvault delete --name $VAULT_NAME -g $RG
 
 ---
 
@@ -360,167 +308,3 @@ az acr delete -g $RG -n $ACR --yes
 \## 📄 MIT License
 
 This project remains MIT‑licensed. See `LICENSE`.
-
-
-FRONT=http://codeopt-frontend-anshu.centralindia.azurecontainer.io
-BACK=http://codeopt-backend-anshu.centralindia.azurecontainer.io:8000
-
-# 1) From your laptop check CORS headers
-curl -I -X POST $BACK/session -H "Origin: $FRONT"
-# Expect:
-# HTTP/1.1 200 OK
-# access-control-allow-origin: http://codeopt-frontend-anshu.centralindia.azurecontainer.io
-# access-control-allow-credentials: true
-# set-cookie: session=...
-
-# 2) OPTIONS pre-flight
-curl -I -X OPTIONS $BACK/clone -H "Origin: $FRONT" -H "Access-Control-Request-Method: POST"
-# Expect 204/200 with the two CORS headers
-
-
-
-Below is an **end-to-end “Front Door + cookie” recipe** that brings you back to
-the **original cookie workflow** while making it work from *any* browser,
-because all traffic now comes from a **single HTTPS origin** served by
-**Azure Front Door Standard**.
-
----
-
-
-*(keep the generic `@app.options` 204 handler you added earlier)*
-
-Re-build & push the backend image (`backend:v-cookie`) and redeploy the ACI:
-
-```bash
-az container delete -g $RG -n $BACK_LABEL --yes
-az container create -g $RG -n $BACK_LABEL \
-  --image $ACR.azurecr.io/$IMG-backend:v-cookie \
-  --registry-login-server $ACR.azurecr.io \
-  --cpu 1 --memory 2 --ports 8000 \
-  --dns-name-label $BACK_LABEL \
-  --environment-variables \
-     ALLOWED_ORIGINS=https://$FD_FQDN \
-     BDC_VAULT_NAME=$VAULT \
-     AZURE_CLIENT_ID=$AZURE_CLIENT_ID \
-     AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET \
-     AZURE_TENANT_ID=$AZURE_TENANT_ID \
-     SESSION_SECRET=$SESSION_SECRET
-```
-
----
-
-## 2  Restore the **frontend** to cookie calls
-
-`src/api.js` (original style)
-
-```js
-const API = import.meta.env.VITE_API_URL || "/api";   // ← we’ll proxy /api
-
-export async function createSession() {
-  await fetch(`${API}/session`, { method: "POST", credentials: "include" });
-}
-
-export async function cloneRepo(url) {
-  const res = await fetch(`${API}/clone`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ repo_url: url }),
-  });
-  if (!res.ok) throw new Error("clone failed");
-  return res.json();
-}
-
-/* getFile and optimise identical, keep credentials:"include" */
-```
-# Create Application Insights
-az monitor app-insights component create \
-  --app $APPINSIGHTNAME \
-  --location $REGION \
-  --application-type web \
-  -g $RG 
-
-
-# Get the instrumentation key
-APPINSIGHTS_INSTRUMENTATIONKEY=$(az monitor app-insights component show \
-  --app $APPINSIGHTNAME \
-  -g $RG \
-  --query instrumentationKey -o tsv)
-
-VITE_APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY
-# Create a user-assigned managed identity
-az identity create \
-  --name codeopt-identity \
-  --resource-group $RG
-
-# Get the principal ID and resource ID of the managed identity
-MANAGED_IDENTITY_PRINCIPAL_ID=$(az identity show \
-  --name codeopt-identity \
-  --resource-group myResourceGroup \
-  --query principalId -o tsv)
-
-MANAGED_IDENTITY_RESOURCE_ID=$(az identity show \
-  --name codeopt-identity \
-  --resource-group myResourceGroup \
-  --query id -o tsv)
-
-# Update container group with managed identity and app insights
-az container create \
-  --resource-group myResourceGroup \
-  --name codeopt-container-group \
-  --image myacrname.azurecr.io/codeopt-frontend:latest \
-  --image myacrname.azurecr.io/codeopt-backend:latest \
-  --registry-login-server myacrname.azurecr.io \
-  --registry-username $ACR_USERNAME \
-  --registry-password $ACR_PASSWORD \
-  --dns-name-label codeopt-app \
-  --ports 80 8000 \
-  --assign-identity $MANAGED_IDENTITY_RESOURCE_ID \
-  --containers-json "[
-    {
-      \"name\": \"frontend\", 
-      \"image\": \"myacrname.azurecr.io/codeopt-frontend:latest\",
-      \"resources\": {
-        \"requests\": {
-          \"cpu\": 1,
-          \"memoryInGb\": 1.5
-        }
-      },
-      \"ports\": [{\"port\": 80}],
-      \"environmentVariables\": [
-        {
-          \"name\": \"BACKEND_URL\",
-          \"value\": \"http://localhost:8000\"
-        },
-        {
-          \"name\": \"APPINSIGHTS_INSTRUMENTATIONKEY\",
-          \"value\": \"$APPINSIGHTS_KEY\"
-        }
-      ]
-    },
-    {
-      \"name\": \"backend\",
-      \"image\": \"myacrname.azurecr.io/codeopt-backend:latest\",
-      \"resources\": {
-        \"requests\": {
-          \"cpu\": 1,
-          \"memoryInGb\": 1.5
-        }
-      },
-      \"ports\": [{\"port\": 8000}],
-      \"environmentVariables\": [
-        {
-          \"name\": \"SESSION_SECRET\",
-          \"value\": \"$(openssl rand -base64 32)\"
-        },
-        {
-          \"name\": \"ALLOWED_ORIGINS\",
-          \"value\": \"http://codeopt-app.eastus.azurecontainer.io,https://codeopt-app.eastus.azurecontainer.io\"
-        },
-        {
-          \"name\": \"APPINSIGHTS_INSTRUMENTATIONKEY\",
-          \"value\": \"$APPINSIGHTS_KEY\"
-        }
-      ]
-    }
-  ]"
