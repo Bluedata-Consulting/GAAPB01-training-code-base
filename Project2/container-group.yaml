@@ -23,7 +23,7 @@ properties:
       - name: VAULT_NAME
         value: vaultanshu
       - name: AZURE_CLIENT_SECRET
-        value: Qo08Q~6oJCTHJkBkrA2gSQZr8YlznTnVk26tncv.
+        value: 7fx8Q~JTDtN6YsBRqqFvUMr8vyeorQOsh6hWZawn
       - name: AZURE_CLIENT_ID
         value: cc8f42c4-5f99-417b-b833-3bc39649cf4a
       - name: AZURE_TENANT_ID
@@ -35,11 +35,11 @@ properties:
       - name: AZURE_OPENAI_ENDPOINT
         value: https://swedencentral.api.cognitive.microsoft.com/
       - name: SESSION_SECRET
-        value: AS0D4sidjUhCX+yw9PyGTbSiQqF59Fcgc9wa85axW/k=
+        value: 5H63Z7x4PrRXzuBrzNF1l9gqYxuN/kF0v1w6y67ie0I=
       - name: RUNNING_IN_AZURE
         value: 'True'
       - name: ALLOWED_ORIGINS
-        value: http://codeopt-app.centralindia.azurecontainer.io,http://localhost
+        value: http://codeopt-app..azurecontainer.io,http://localhost
       image: codeacranshu.azurecr.io/imganshu-backend:latest
       ports:
       - port: 8000
@@ -48,7 +48,7 @@ properties:
           cpu: 1.0
           memoryInGB: 2.0
   imageRegistryCredentials:
-  - password: OvVtl/RyTJ/g32yCmAxv4vPKv+ViuVcgafkYaMi8DH+ACRCCttSz
+  - password: 8NEap1GSV4s42DmoUAFdwXMp+4DPHW6pnj6gfwulOJ+ACRD/4NXS
     server: codeacranshu.azurecr.io
     username: codeacranshu
   ipAddress:
