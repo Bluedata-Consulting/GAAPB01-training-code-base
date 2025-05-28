@@ -1,6 +1,18 @@
 # Smart Ticket Resolution Estimator
 
-## 📝 Overview
+## 📝 Context
+
+In the telecommunications industry, customers highly value timely and transparent communication during service outages. When internet or phone service goes down, customers experience immediate frustration and uncertainty. They urgently want to know if the telecom service provider is aware of the issue, the underlying cause, and when service will be restored. Failure to proactively communicate real-time updates results in increased customer dissatisfaction, higher volumes of support calls, reputational damage, and potential customer churn. 
+
+---
+
+## ❗ Problem Statement
+
+Telecom companies struggle to rapidly collect, interpret, and disseminate accurate outage information at scale. Internal outage data—such as outage cause, impacted regions, and estimated resolution times—is stored in various disconnected systems, including network alarms, support tickets, and field engineer notes. These data sources are not easily accessible or customer friendly. Consequently, support agents are overwhelmed by repetitive outage inquiries, significantly increasing resolution time and customer frustration.
+
+---
+
+## 💡 Proposed Solution
 
 A comprehensive RAG-based ticket processing system that leverages AI to estimate resolution times and generate customer notifications:
 
